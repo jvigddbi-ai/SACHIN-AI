@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI BOT V17.9 COLOR MATRIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050508; 
+            --panel: #11111a; 
+            --gold: #ffcc00; 
+            --green: #00ff88;
+            --red: #ff4444; 
+            --blue: #00d4ff; 
+            --text: #ffffff;
+            --violet: #b65cff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Rajdhani', sans-serif; }
+        body { background: var(--bg); color: var(--text); width: 100vw; overflow-x: hidden; padding: 10px; }
+        
+        .header { 
+            background: linear-gradient(135deg, #161622, #0d0d15); 
+            padding: 12px; border-radius: 15px; border-bottom: 3px solid var(--gold); 
+            margin-bottom: 10px; text-align: center; 
+        }
+        .live-id { font-size: 28px; font-weight: 900; font-family: 'Roboto Mono'; color: #fff; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+        .stat-box { background: var(--panel); padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #1f1f2e; }
+        .stat-v { font-size: 20px; font-weight: 800; }
+        .stat-l { font-size: 8px; color: #666; font-weight: bold; }
+
+        .matrix-label-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 4px; text-align: center; }
+        .m-label { font-size: 8px; color: #666; font-weight: 800; }
+
+        .matrix-container {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px;
+            background: rgba(255,255,255,0.02); padding: 8px; border-radius: 12px; border: 1px solid #1f1f2e;
+        }
+        .matrix-box {
+            aspect-ratio: 1/1; background: #0a0a0f; border: 1px solid #333; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px;
+        }
+        /* Color Classes for Matrix */
+        .c-red { color: var(--red); border-color: var(--red); }
+        .c-green { color: var(--green); border-color: var(--green); }
+        .c-violet { color: var(--violet); border-color: var(--violet); }
+        .c-none { color: #444; border-color: #222; }
+
+        .main-card { 
+            background: linear-gradient(180deg, #1c1c28, #0a0a0f); 
+            border: 1px solid #2a2a3a; padding: 20px; border-radius: 25px; 
+            text-align: center; position: relative; margin-bottom: 15px; border-top: 2px solid var(--gold); 
+        }
+        .timer-badge { position: absolute; top: 10px; right: 12px; color: var(--gold); font-size: 14px; font-weight: 900; }
+        
+        .dual-num-wrapper { display: flex; justify-content: space-around; align-items: center; margin-top: 15px; }
+        .strike-container { text-align: center; }
+        .strike-tag { font-size: 10px; font-weight: bold; margin-bottom: 5px; color: #666; }
+        .strike-num { 
+            width: 65px; height: 65px; background: #000; border: 3px solid #333; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: #fff;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
+        }
+        .b-gold { border-color: var(--gold); color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+        
+        .table-wrap { background: var(--panel); border-radius: 20px; overflow: hidden; border: 1px solid #1f1f2e; }
+        .scroll-y { max-height: 380px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #161622; color: #555; padding: 12px; font-size: 9px; text-align: left; position: sticky; top: 0; z-index: 10; }
+        td { padding: 12px 10px; border-bottom: 1px solid #0d0d15; font-size: 12px; font-family: 'Roboto Mono'; }
+
+        .btn-add { background: var(--green); color: #000; border: none; padding: 5px 10px; border-radius: 6px; font-size: 9px; font-weight: 900; cursor: pointer; }
+        
+        #input-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #161622; padding: 25px; border-radius: 30px; width: 100%; max-width: 320px; text-align: center; border: 1px solid var(--gold); }
+        .num-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 25px 0; }
+        .num-btn { background: #252535; color: #fff; border: 1px solid #333; padding: 15px 0; border-radius: 12px; font-weight: 900; font-size: 20px; }
+        #setup-screen { position:fixed; inset:0; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; }
+        
+        .dot-res { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="setup-screen">
+    <button id="boot-btn" style="padding:20px 50px; background:var(--gold); border:none; border-radius:20px; font-weight:900; font-size:22px;">BOOT SYSTEM</button>
+</div>
+
+<div id="input-modal">
+    <div class="modal-content">
+        <div id="modal-id" style="color: var(--gold); font-weight: 900; font-size: 20px;">PERIOD ----</div>
+        <div class="num-grid" id="modal-num-grid"></div>
+        <button onclick="closeModal()" style="color:#555; background:none; border:none; font-weight:bold; font-size: 14px;">CANCEL</button>
+    </div>
+</div>
+
+<div id="main-app" style="display:none;">
+    <div class="header">
+        <div style="font-size:10px; color:var(--gold); font-weight:bold;">NEXT TARGET</div>
+        <div id="ui-next-id" class="live-id">----</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box"><div class="stat-v" id="st-wins" style="color:var(--green)">0</div><div class="stat-l">WINS</div></div>
+        <div class="stat-box"><div class="stat-v" id="st-loss" style="color:var(--red)">0</div><div class="stat-l">LOSS</div></div>
+        <div class="stat-box"><div class="stat-v" id="st-jack" style="color:var(--gold)">0</div><div class="stat-l">JACKPOT</div></div>
+    </div>
+
+    <div class="matrix-label-row">
+        <div class="m-label">-10</div><div class="m-label">-20</div><div class="m-label">-30</div><div class="m-label">-40</div>
+        <div class="m-label">M1</div><div class="m-label">M2</div><div class="m-label">M3</div>
+    </div>
+    <div class="matrix-container" id="matrix-body">
+        <div class="matrix-box c-none" id="mb-10">?</div><div class="matrix-box c-none" id="mb-20">?</div><div class="matrix-box c-none" id="mb-30">?</div><div class="matrix-box c-none" id="mb-40">?</div>
+        <div class="matrix-box c-none" id="mm-1">?</div><div class="matrix-box c-none" id="mm-2">?</div><div class="matrix-box c-none" id="mm-3">?</div>
+    </div>
+
+    <div class="main-card">
+        <div class="timer-badge" id="timer-box">30s</div>
+        <div id="ui-prediction-main" style="font-size: 24px; font-weight: 900; color: #fff;">ANALYZING...</div>
+        
+        <div class="dual-num-wrapper">
+            <div class="strike-container">
+                <div class="strike-tag">BIG STRIKE</div>
+                <div class="strike-num b-gold" id="ui-num-big">?</div>
+            </div>
+            <div class="strike-container">
+                <div class="strike-tag">SMALL STRIKE</div>
+                <div class="strike-num b-gold" id="ui-num-small">?</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <div class="scroll-y">
+            <table>
+                <thead><tr><th>PERIOD</th><th>NUM</th><th>RESULT</th><th>DATA</th></tr></thead>
+                <tbody id="ui-history-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'v17-color-matrix-v1';
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    
+    const API = "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json";
+    let state = { history: [], results: {}, activeManualId: null };
+
+    const modalGrid = document.getElementById('modal-num-grid');
+    for(let i=0; i<10; i++) {
+        const b = document.createElement('button'); b.className = 'num-btn'; b.innerText = i;
+        b.onclick = () => submitManual(i); modalGrid.appendChild(b);
+    }
+
+    document.getElementById('boot-btn').onclick = async () => {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } else { await signInAnonymously(auth); }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            initSync();
+            setInterval(fetchData, 2000);
+            setInterval(() => {
+                const rem = (30 - (new Date().getSeconds() % 30));
+                document.getElementById('timer-box').innerText = rem + "s";
+                if(rem === 30) fetchData();
+            }, 1000);
+        }
+    });
+
+    function initSync() {
+        const pq = query(collection(db, 'artifacts', appId, 'public', 'data', 'preds'), orderBy('issue', 'desc'), limit(100));
+        onSnapshot(pq, snap => {
+            snap.docs.forEach(d => { state.results[d.data().issue] = d.data(); });
+            renderTable();
+            updateStats();
+        });
+
+        const lq = query(collection(db, 'artifacts', appId, 'public', 'data', 'logs'), orderBy('issue', 'desc'), limit(150));
+        onSnapshot(lq, snap => {
+            state.history = snap.docs.map(d => d.data());
+            if (state.history.length > 0) {
+                const nextId = (BigInt(state.history[0].issue) + 1n).toString();
+                document.getElementById('ui-next-id').innerText = nextId;
+                runLogic(nextId);
+            }
+            renderTable();
+            updateStats();
+        });
+    }
+
+    async function fetchData() {
+        try {
+            const res = await fetch(`${API}?t=${Date.now()}&pageSize=20`);
+            const json = await res.json();
+            if(!json.data || !json.data.list) return;
+            for (const item of json.data.list) {
+                const id = item.issueNumber;
+                if (!state.history.find(h => h.issue === id)) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', id), {
+                        issue: id, number: parseInt(item.number), source: 'API'
+                    });
+                }
+            }
+        } catch (e) {}
+    }
+
+    function getColorClass(n) {
+        if(n === null) return 'c-none';
+        if([0, 5].includes(n)) return 'c-violet';
+        if([1, 3, 7, 9].includes(n)) return 'c-green';
+        return 'c-red';
+    }
+
+    function runLogic(targetId) {
+        if (state.history.length === 0) return;
+        
+        const P = BigInt(state.history[0].issue);
+        const curNum = state.history[0].number;
+        let matrixInputs = [];
+
+        // Matrix Fetching & Coloring
+        [10n, 20n, 30n, 40n].forEach((off, idx) => {
+            const tid = (P - off + 1n).toString();
+            const data = state.history.find(h => h.issue === tid);
+            const val = (data && data.number !== undefined) ? data.number : null;
+            const el = document.getElementById(`mb-${(idx+1)*10}`);
+            el.innerText = (val !== null) ? val : '?';
+            el.className = `matrix-box ${getColorClass(val)}`;
+            if(val !== null) matrixInputs.push(val);
+        });
+
+        let mCount = 0;
+        for (let i = 1; i < state.history.length - 1 && mCount < 3; i++) {
+            if (state.history[i].number === curNum) {
+                const nextVal = state.history[i-1].number;
+                const el = document.getElementById(`mm-${mCount+1}`);
+                el.innerText = nextVal;
+                el.className = `matrix-box ${getColorClass(nextVal)}`;
+                matrixInputs.push(nextVal);
+                mCount++;
+            }
+        }
+        for(let j=mCount; j<3; j++) {
+            const el = document.getElementById(`mm-${j+1}`);
+            el.innerText = '?';
+            el.className = 'matrix-box c-none';
+        }
+
+        // Color & Number Prediction Logic
+        if(matrixInputs.length > 0) {
+            // Find Dominant Color
+            let redC = matrixInputs.filter(n => [0,2,4,6,8].includes(n)).length;
+            let greenC = matrixInputs.filter(n => [1,3,5,7,9].includes(n)).length;
+            const domColor = greenC >= redC ? 'GREEN' : 'RED';
+            
+            // Separate Big and Small from matrix
+            let bigs = matrixInputs.filter(n => n >= 5);
+            let smalls = matrixInputs.filter(n => n < 5);
+
+            // Get strongest Big
+            const freqB = {}; bigs.forEach(n => freqB[n] = (freqB[n] || 0) + 1);
+            let sortedB = Object.entries(freqB).sort((a,b) => b[1] - a[1]);
+            const predBig = sortedB.length > 0 ? parseInt(sortedB[0][0]) : (domColor === 'RED' ? 6 : 7);
+
+            // Get strongest Small
+            const freqS = {}; smalls.forEach(n => freqS[n] = (freqS[n] || 0) + 1);
+            let sortedS = Object.entries(freqS).sort((a,b) => b[1] - a[1]);
+            const predSmall = sortedS.length > 0 ? parseInt(sortedS[0][0]) : (domColor === 'RED' ? 2 : 1);
+
+            document.getElementById('ui-num-big').innerText = predBig;
+            document.getElementById('ui-num-small').innerText = predSmall;
+            
+            const bigTrend = bigs.length >= smalls.length ? 'BIG' : 'SMALL';
+            document.getElementById('ui-prediction-main').innerText = `${domColor} ${bigTrend}`;
+            document.getElementById('ui-prediction-main').style.color = domColor === 'GREEN' ? 'var(--green)' : 'var(--red)';
+
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'preds', targetId), { 
+                issue: targetId, 
+                nums: [predBig, predSmall], 
+                predType: bigTrend,
+                predColor: domColor
+            });
+        }
+    }
+
+    function updateStats() {
+        let w=0, l=0, j=0;
+        state.history.forEach(h => {
+            const p = state.results[h.issue];
+            if(p && h.number !== undefined) {
+                const hType = h.number >= 5 ? 'BIG' : 'SMALL';
+                const isJack = p.nums.includes(h.number);
+                if(isJack) { j++; w++; }
+                else if(p.predType === hType) w++;
+                else l++;
+            }
+        });
+        document.getElementById('st-wins').innerText = w;
+        document.getElementById('st-loss').innerText = l;
+        document.getElementById('st-jack').innerText = j;
+    }
+
+    function renderTable() {
+        if(state.history.length === 0) return;
+        let htm = "";
+        const latest = BigInt(state.history[0].issue);
+        for(let i=0; i<100; i++) {
+            const curId = (latest - BigInt(i)).toString();
+            const rec = state.history.find(h => h.issue === curId);
+            const p = state.results[curId];
+            
+            let numD = rec ? rec.number : '...';
+            let resD = "---";
+            let cDot = rec ? (getColorClass(rec.number).replace('c-','')) : 'none';
+            
+            if(rec && p && rec.number !== undefined) {
+                const hType = rec.number >= 5 ? 'BIG' : 'SMALL';
+                if(p.nums.includes(rec.number)) resD = '<span style="color:var(--gold)">JACKPOT</span>';
+                else if(p.predType === hType) resD = '<span style="color:var(--green)">WIN</span>';
+                else resD = '<span style="color:var(--red)">LOSS</span>';
+            }
+
+            let btn = rec && rec.source === 'API' ? '<span style="color:#333;font-size:8px">API</span>' : 
+                      rec ? `<button class="btn-add" style="background:var(--blue)" onclick="openModal('${curId}')">EDIT</button>` : 
+                      `<button class="btn-add" onclick="openModal('${curId}')">ADD</button>`;
+
+            htm += `<tr>
+                <td>#${curId.slice(-4)}</td>
+                <td style="font-weight:900;"><span class="dot-res" style="background:var(--${cDot})"></span>${numD}</td>
+                <td>${resD}</td>
+                <td>${btn}</td>
+            </tr>`;
+        }
+        document.getElementById('ui-history-body').innerHTML = htm;
+    }
+
+    window.openModal = (id) => { 
+        state.activeManualId = id; 
+        document.getElementById('modal-id').innerText = `PERIOD #${id.slice(-6)}`; 
+        document.getElementById('input-modal').style.display = 'flex'; 
+    };
+    window.closeModal = () => document.getElementById('input-modal').style.display = 'none';
+    window.submitManual = async (num) => {
+        if (!state.activeManualId) return;
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'logs', state.activeManualId), {
+            issue: state.activeManualId, number: num, source: 'USER'
+        }, { merge: true });
+        closeModal();
+    };
+</script>
+</body>
+</html>
